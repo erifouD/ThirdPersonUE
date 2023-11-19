@@ -53,24 +53,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FCharacterSpeed MovementInfo;
 
-	//CameraScaleStuff
+	//CameraScaleStuff===========================
+	float ZoomStep;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float MinSpringDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float MaxSpringDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float TimerTickLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float SpringArmAnimLength;
+
+	//Ñhangeable 
 	FTimerHandle SpringArmAnim;
 	float AnimTimeElapsed;
 	bool IsPlaying;
 	int ZoomIn;
 	float StartLength;
 	float EndLength;
-	float ZoomStep;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
-	float MinSpringDistance;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
-	float MaxSpringDistance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
-	float TimerTickLength;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
-	float SpringArmAnimLength;
-	////////////////////////////
+	////////////////////////////==========================
 
 	bool SprintButtonPressed;
 	bool WalkButtonPressed;
@@ -111,9 +112,6 @@ public:
 
 	//UpdateCameraDistanceStuff
 	void NewLocationTick();
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateCameraDistance(const float& NewDistance);
-	UFUNCTION(BlueprintPure)
 	float HermiteSpline(float Time, float AnimLength);
 };
 
