@@ -53,6 +53,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FCharacterSpeed MovementInfo;
 
+	//CameraScaleStuff
+	FTimerHandle SpringArmAnim;
+	float AnimTimeElapsed;
+	bool IsPlaying;
+	int ZoomIn;
+	float StartLength;
+	float EndLength;
+	float ZoomStep;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float MinSpringDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float MaxSpringDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float TimerTickLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float SpringArmAnimLength;
+	////////////////////////////
+
 	bool SprintButtonPressed;
 	bool WalkButtonPressed;
 	bool AimButtonPressed;
@@ -65,13 +84,16 @@ public:
 	UInputAction* MoveAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
-	UInputAction* AimAction;
-		
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* WalkAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* AimAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* SprintAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* ZoomAction;
 public:
 	//////////////////////Functions
 
@@ -79,11 +101,19 @@ public:
 	void Walk(const FInputActionValue& Value);
 	void Aim(const FInputActionValue& Value);
 	void Sprint(const FInputActionValue& Value);
+	void Zoom(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void MovementTick(float DeltaTime);
 
 	UFUNCTION(BlueprintCallable)
 	void CharacterUpdate();
+
+	//UpdateCameraDistanceStuff
+	void NewLocationTick();
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateCameraDistance(const float& NewDistance);
+	UFUNCTION(BlueprintPure)
+	float HermiteSpline(float Time, float AnimLength);
 };
 

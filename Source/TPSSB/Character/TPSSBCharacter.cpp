@@ -35,7 +35,7 @@ ATPSSBCharacter::ATPSSBCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
-	CameraBoom->TargetArmLength = 800.f;
+	CameraBoom->TargetArmLength = 900.f;
 	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 
@@ -59,9 +59,17 @@ ATPSSBCharacter::ATPSSBCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	SprintButtonPressed = 0;
-	WalkButtonPressed = 0;
-	AimButtonPressed = 0;
+	SprintButtonPressed = false;
+	WalkButtonPressed = false;
+	AimButtonPressed = false;
+
+	AnimTimeElapsed = 0.f;
+	IsPlaying = false;
+	MinSpringDistance = 300.0f;
+	MaxSpringDistance = 1500.0f;
+	TimerTickLength = .005f;
+	SpringArmAnimLength = .125f;
+	ZoomStep = 300.f;
 }
 
 void ATPSSBCharacter::Tick(float DeltaSeconds)
@@ -128,6 +136,8 @@ void ATPSSBCharacter::SetupPlayerInputComponent(class UInputComponent* InputComp
 
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ATPSSBCharacter::Sprint);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATPSSBCharacter::Sprint);
+
+		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Started, this, &ATPSSBCharacter::Zoom);
 	}
 }
 
@@ -184,15 +194,27 @@ void ATPSSBCharacter::Sprint(const FInputActionValue& Value)
 	CharacterUpdate();
 }
 
+void ATPSSBCharacter::Zoom(const FInputActionValue& Value)
+{
+	if (IsPlaying) return;
+	ZoomIn = -(Value.Get<float>());
+	IsPlaying = true;
+	StartLength = CameraBoom->TargetArmLength;
+	if (StartLength + ZoomStep * ZoomIn >= MaxSpringDistance)
+		EndLength = MaxSpringDistance;
+	else if (StartLength + ZoomStep * ZoomIn <= MinSpringDistance)
+		EndLength = MinSpringDistance;
+	else EndLength = StartLength + ZoomStep * ZoomIn;
+	GetWorldTimerManager().SetTimer(SpringArmAnim, this, &ATPSSBCharacter::NewLocationTick, TimerTickLength, true);
+}
+
 
 void ATPSSBCharacter::MovementTick(float DeltaTime)
 {
-
 	FHitResult HitResult;
-	APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	myController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery6, false, HitResult);
+	APlayerController* CharacterController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	CharacterController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery6, false, HitResult);
 	SetActorRotation(FQuat(FRotator(0.0f, UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), HitResult.Location).Yaw, 0.0f)));
-
 }
 
 void ATPSSBCharacter::CharacterUpdate()
@@ -206,4 +228,23 @@ void ATPSSBCharacter::CharacterUpdate()
 	default: break;
 	}
 	GetCharacterMovement()->MaxWalkSpeed = RegSpeed;
+}
+
+void ATPSSBCharacter::NewLocationTick()
+{
+	AnimTimeElapsed += TimerTickLength;
+	if (AnimTimeElapsed > SpringArmAnimLength) {
+		CameraBoom->TargetArmLength = FMath::RoundHalfFromZero(CameraBoom->TargetArmLength / 100.0f) * 100.0f;
+		GetWorldTimerManager().ClearTimer(SpringArmAnim);
+		AnimTimeElapsed = 0.f;
+		IsPlaying = false;
+		return;
+	}
+	CameraBoom->TargetArmLength = FMath::Lerp(StartLength, EndLength, HermiteSpline(AnimTimeElapsed, SpringArmAnimLength));
+}
+
+float ATPSSBCharacter::HermiteSpline(float Time, float AnimLength)
+{
+	if (!AnimLength == 0.000f) Time /= AnimLength;
+	return Time * Time * (3 - 2 * Time);
 }
