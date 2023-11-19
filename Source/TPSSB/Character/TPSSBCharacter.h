@@ -5,7 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "../FuncLibrary/Types.h"
+#include "EnhancedInputComponent.h"
 #include "TPSSBCharacter.generated.h"
+
+
+class UInputMappingContext;
+class UInputAction;
+struct FInputActionValue;
 
 UCLASS(Blueprintable)
 class ATPSSBCharacter : public ACharacter
@@ -17,7 +23,7 @@ public:
 	 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
-
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponento) override;
 
 	/** Returns TopDownCameraComponent subobject **/
@@ -50,6 +56,22 @@ public:
 	bool SprintButtonPressed;
 	bool WalkButtonPressed;
 	bool AimButtonPressed;
+
+	///////////////////////Mappings
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputMappingContext* DefaultMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* MoveAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* AimAction;
+		
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* WalkAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	UInputAction* SprintAction;
 public:
 	//////////////////////Functions
 
@@ -59,13 +81,14 @@ public:
 	UFUNCTION()
 	void InputAxisY(float Value);
 
-	void SetRunState();
-	void SetSprintState();
-	void SetWalkState();
-	void SetAimState();
 
 	float AxisX = 0.0f;
 	float AxisY = 0.0f;
+
+	void Move(const FInputActionValue& Value);
+	void Sprint(const FInputActionValue& Value);
+	void Walk(const FInputActionValue& Value);
+	void Aim(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void MovementTick(float DeltaTime);

@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
@@ -97,22 +98,40 @@ void ATPSSBCharacter::Tick(float DeltaSeconds)
 	MovementTick(DeltaSeconds);
 }
 
+void ATPSSBCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Add Input Mapping Context
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+}
+
 void ATPSSBCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponento)
 {
 	Super::SetupPlayerInputComponent(InputComponento);
 
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponento)) {
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATPSSBCharacter::Move);
+	}
 
-	InputComponento->BindAxis(TEXT("MoveForward"), this, &ATPSSBCharacter::InputAxisX);
-	InputComponento->BindAxis(TEXT("MoveRight"), this, &ATPSSBCharacter::InputAxisY);
 
-	InputComponento->BindAction(TEXT("SwitchWalk"), IE_Pressed, this, &ATPSSBCharacter::SetWalkState);
+	//InputComponento->BindAxis(TEXT("MoveForward"), this, &ATPSSBCharacter::InputAxisX);
+	//InputComponento->BindAxis(TEXT("MoveRight"), this, &ATPSSBCharacter::InputAxisY);
+
+	/*InputComponento->BindAction(TEXT("SwitchWalk"), IE_Pressed, this, &ATPSSBCharacter::SetWalkState);
 	InputComponento->BindAction(TEXT("SwitchWalk"), IE_Released, this, &ATPSSBCharacter::SetRunState);
 
 	InputComponento->BindAction(TEXT("SprintSwitch"), IE_Pressed, this, &ATPSSBCharacter::SetSprintState);
 	InputComponento->BindAction(TEXT("SprintSwitch"), IE_Released, this, &ATPSSBCharacter::SetRunState);
 
 	InputComponento->BindAction(TEXT("AimAction"), IE_Pressed, this, &ATPSSBCharacter::SetAimState);
-	InputComponento->BindAction(TEXT("AimAction"), IE_Released, this, &ATPSSBCharacter::SetRunState);
+	InputComponento->BindAction(TEXT("AimAction"), IE_Released, this, &ATPSSBCharacter::SetRunState);*/
 }
 
 void ATPSSBCharacter::InputAxisX(float Value)
@@ -125,39 +144,20 @@ void ATPSSBCharacter::InputAxisY(float Value)
 	AxisY = Value;
 }
 
-void ATPSSBCharacter::SetRunState()
+void ATPSSBCharacter::Move(const FInputActionValue& Value)
 {
-}
+	// input is a Vector2D
+	FVector2D MovementVector = Value.Get<FVector2D>();
 
-void ATPSSBCharacter::SetSprintState()
-{
-	SprintButtonPressed = 1;
-	MovementState = EMovementState::SprintState;
-	CharacterUpdate();
-}
-
-void ATPSSBCharacter::SetWalkState()
-{
-	WalkButtonPressed = 1;
-	if (!SprintButtonPressed) {
-		MovementState = EMovementState::WalkState;
-		CharacterUpdate();
+	if (Controller != nullptr){
+		AddMovementInput(FVector(1.0f, 0.0f, 0.0f), MovementVector.Y);
+		AddMovementInput(FVector(0.0f, 1.0f, 0.0f), MovementVector.X);
 	}
 }
 
-void ATPSSBCharacter::SetAimState()
-{
-	AimButtonPressed = 1;
-	if (!SprintButtonPressed) {
-		MovementState = EMovementState::AimState;
-		CharacterUpdate();
-	}
-}
 
 void ATPSSBCharacter::MovementTick(float DeltaTime)
 {
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), AxisX);
-	AddMovementInput(FVector(0.0f, 1.0f, 0.0f), AxisY);
 
 	FHitResult HitResult;
 	APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
