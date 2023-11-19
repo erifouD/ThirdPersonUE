@@ -118,30 +118,17 @@ void ATPSSBCharacter::SetupPlayerInputComponent(class UInputComponent* InputComp
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponento)) {
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATPSSBCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ATPSSBCharacter::Move);
+
+		EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Triggered, this, &ATPSSBCharacter::Walk);
+		EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Completed, this, &ATPSSBCharacter::Walk);
+
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &ATPSSBCharacter::Aim);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ATPSSBCharacter::Aim);
+
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ATPSSBCharacter::Sprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATPSSBCharacter::Sprint);
 	}
-
-
-	//InputComponento->BindAxis(TEXT("MoveForward"), this, &ATPSSBCharacter::InputAxisX);
-	//InputComponento->BindAxis(TEXT("MoveRight"), this, &ATPSSBCharacter::InputAxisY);
-
-	/*InputComponento->BindAction(TEXT("SwitchWalk"), IE_Pressed, this, &ATPSSBCharacter::SetWalkState);
-	InputComponento->BindAction(TEXT("SwitchWalk"), IE_Released, this, &ATPSSBCharacter::SetRunState);
-
-	InputComponento->BindAction(TEXT("SprintSwitch"), IE_Pressed, this, &ATPSSBCharacter::SetSprintState);
-	InputComponento->BindAction(TEXT("SprintSwitch"), IE_Released, this, &ATPSSBCharacter::SetRunState);
-
-	InputComponento->BindAction(TEXT("AimAction"), IE_Pressed, this, &ATPSSBCharacter::SetAimState);
-	InputComponento->BindAction(TEXT("AimAction"), IE_Released, this, &ATPSSBCharacter::SetRunState);*/
-}
-
-void ATPSSBCharacter::InputAxisX(float Value)
-{
-	AxisX = Value;
-}
-
-void ATPSSBCharacter::InputAxisY(float Value)
-{
-	AxisY = Value;
 }
 
 void ATPSSBCharacter::Move(const FInputActionValue& Value)
@@ -153,6 +140,48 @@ void ATPSSBCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(FVector(1.0f, 0.0f, 0.0f), MovementVector.Y);
 		AddMovementInput(FVector(0.0f, 1.0f, 0.0f), MovementVector.X);
 	}
+}
+
+void ATPSSBCharacter::Walk(const FInputActionValue& Value)
+{
+	if (Value.IsNonZero()) {
+		MovementState = EMovementState::WalkState;
+		WalkButtonPressed = 1;
+	}
+	else {
+		MovementState = EMovementState::RunState;
+		WalkButtonPressed = 0;
+	}
+
+	CharacterUpdate();
+}
+
+void ATPSSBCharacter::Aim(const FInputActionValue& Value)
+{
+	if (Value.IsNonZero()) {
+		MovementState = EMovementState::AimState;
+		AimButtonPressed = 1;
+	}
+	else {
+		MovementState = EMovementState::RunState;
+		AimButtonPressed = 0;
+	}
+
+	CharacterUpdate();
+}
+
+void ATPSSBCharacter::Sprint(const FInputActionValue& Value)
+{
+	if (Value.IsNonZero()) {
+		MovementState = EMovementState::SprintState;
+		SprintButtonPressed = 1;
+	}
+	else {
+		MovementState = EMovementState::RunState;
+		SprintButtonPressed = 0;
+	}
+
+	CharacterUpdate();
 }
 
 

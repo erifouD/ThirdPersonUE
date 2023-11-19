@@ -75,20 +75,10 @@ public:
 public:
 	//////////////////////Functions
 
-	UFUNCTION()
-	void InputAxisX(float Value);
-
-	UFUNCTION()
-	void InputAxisY(float Value);
-
-
-	float AxisX = 0.0f;
-	float AxisY = 0.0f;
-
 	void Move(const FInputActionValue& Value);
-	void Sprint(const FInputActionValue& Value);
 	void Walk(const FInputActionValue& Value);
 	void Aim(const FInputActionValue& Value);
+	void Sprint(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void MovementTick(float DeltaTime);
