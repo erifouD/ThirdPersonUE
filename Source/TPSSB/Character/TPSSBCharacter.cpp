@@ -234,6 +234,7 @@ void ATPSSBCharacter::NewLocationTick()
 {
 	AnimTimeElapsed += TimerTickLength;
 	if (AnimTimeElapsed > SpringArmAnimLength) {
+		//This line is needed to level out the error.
 		CameraBoom->TargetArmLength = FMath::RoundHalfFromZero(CameraBoom->TargetArmLength / 100.0f) * 100.0f;
 		GetWorldTimerManager().ClearTimer(SpringArmAnim);
 		AnimTimeElapsed = 0.f;
