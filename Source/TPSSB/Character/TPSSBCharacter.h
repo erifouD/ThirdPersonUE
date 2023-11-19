@@ -42,19 +42,27 @@ private:
 public:
 	//////////////////////Variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	EMovementState MovementState = EMovementState::SprintState;
+	EMovementState MovementState = EMovementState::RunState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FCharacterSpeed MovementInfo;
+
+	bool SprintButtonPressed;
+	bool WalkButtonPressed;
+	bool AimButtonPressed;
 public:
 	//////////////////////Functions
-
 
 	UFUNCTION()
 	void InputAxisX(float Value);
 
 	UFUNCTION()
 	void InputAxisY(float Value);
+
+	void SetRunState();
+	void SetSprintState();
+	void SetWalkState();
+	void SetAimState();
 
 	float AxisX = 0.0f;
 	float AxisY = 0.0f;
@@ -64,8 +72,5 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CharacterUpdate();
-
-	UFUNCTION(BlueprintCallable)
-	void ChangeMovementState(EMovementState NewMovementState);
 };
 

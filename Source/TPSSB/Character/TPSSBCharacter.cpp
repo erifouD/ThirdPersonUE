@@ -57,6 +57,10 @@ ATPSSBCharacter::ATPSSBCharacter()
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	SprintButtonPressed = 0;
+	WalkButtonPressed = 0;
+	AimButtonPressed = 0;
 }
 
 void ATPSSBCharacter::Tick(float DeltaSeconds)
@@ -97,8 +101,18 @@ void ATPSSBCharacter::SetupPlayerInputComponent(class UInputComponent* InputComp
 {
 	Super::SetupPlayerInputComponent(InputComponento);
 
+
 	InputComponento->BindAxis(TEXT("MoveForward"), this, &ATPSSBCharacter::InputAxisX);
 	InputComponento->BindAxis(TEXT("MoveRight"), this, &ATPSSBCharacter::InputAxisY);
+
+	InputComponento->BindAction(TEXT("SwitchWalk"), IE_Pressed, this, &ATPSSBCharacter::SetWalkState);
+	InputComponento->BindAction(TEXT("SwitchWalk"), IE_Released, this, &ATPSSBCharacter::SetRunState);
+
+	InputComponento->BindAction(TEXT("SprintSwitch"), IE_Pressed, this, &ATPSSBCharacter::SetSprintState);
+	InputComponento->BindAction(TEXT("SprintSwitch"), IE_Released, this, &ATPSSBCharacter::SetRunState);
+
+	InputComponento->BindAction(TEXT("AimAction"), IE_Pressed, this, &ATPSSBCharacter::SetAimState);
+	InputComponento->BindAction(TEXT("AimAction"), IE_Released, this, &ATPSSBCharacter::SetRunState);
 }
 
 void ATPSSBCharacter::InputAxisX(float Value)
@@ -109,6 +123,35 @@ void ATPSSBCharacter::InputAxisX(float Value)
 void ATPSSBCharacter::InputAxisY(float Value)
 {
 	AxisY = Value;
+}
+
+void ATPSSBCharacter::SetRunState()
+{
+}
+
+void ATPSSBCharacter::SetSprintState()
+{
+	SprintButtonPressed = 1;
+	MovementState = EMovementState::SprintState;
+	CharacterUpdate();
+}
+
+void ATPSSBCharacter::SetWalkState()
+{
+	WalkButtonPressed = 1;
+	if (!SprintButtonPressed) {
+		MovementState = EMovementState::WalkState;
+		CharacterUpdate();
+	}
+}
+
+void ATPSSBCharacter::SetAimState()
+{
+	AimButtonPressed = 1;
+	if (!SprintButtonPressed) {
+		MovementState = EMovementState::AimState;
+		CharacterUpdate();
+	}
 }
 
 void ATPSSBCharacter::MovementTick(float DeltaTime)
@@ -125,18 +168,13 @@ void ATPSSBCharacter::MovementTick(float DeltaTime)
 
 void ATPSSBCharacter::CharacterUpdate()
 {
-	float RegSpeed = 600.0f;
+	float RegSpeed = 300.0f;
 	switch (MovementState) {
 	case EMovementState::AimState: RegSpeed = MovementInfo.AimSpeed; break;
 	case EMovementState::WalkState: RegSpeed = MovementInfo.WalkSpeed; break;
+	case EMovementState::RunState: RegSpeed = MovementInfo.RunSpeed; break;
 	case EMovementState::SprintState: RegSpeed = MovementInfo.SprintSpeed; break;
 	default: break;
 	}
 	GetCharacterMovement()->MaxWalkSpeed = RegSpeed;
-}
-
-void ATPSSBCharacter::ChangeMovementState(EMovementState NewMovementState)
-{
-	MovementState = NewMovementState;
-	CharacterUpdate();
 }
